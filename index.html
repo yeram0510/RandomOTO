@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>원투원 로테이션 생성기</title>
+<style>
+:root{
+  --bg:#f5f5f5;--surface:#fff;--text:#242424;--sub:#616161;--line:#e0e0e0;
+  --brand:#0f6cbd;--brand-h:#115ea3;--brand-p:#0f548c;--brand-bg:#ebf3fc;
+  --danger:#b10e1c;--danger-bg:#fdf3f4;--ok-bg:#f1faf1;
+  --shadow:0 2px 4px rgba(0,0,0,.14),0 0 2px rgba(0,0,0,.12);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#1f1f1f;--surface:#292929;--text:#fff;--sub:#adadad;--line:#424242;
+    --brand:#479ef5;--brand-h:#62abf5;--brand-p:#2886de;--brand-bg:#112d42;
+    --danger:#f1707b;--danger-bg:#3b1a1d;--ok-bg:#1b2e1b;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1f1f1f;--surface:#292929;--text:#fff;--sub:#adadad;--line:#424242;
+  --brand:#479ef5;--brand-h:#62abf5;--brand-p:#2886de;--brand-bg:#112d42;
+  --danger:#f1707b;--danger-bg:#3b1a1d;--ok-bg:#1b2e1b;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);
+  font:14px/1.5 "Segoe UI","Segoe UI Variable",-apple-system,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif}
+header{background:var(--surface);border-bottom:1px solid var(--line);padding:14px 24px}
+header h1{margin:0;font-size:20px;font-weight:600}
+header p{margin:2px 0 0;color:var(--sub)}
+main{max-width:1100px;margin:0 auto;padding:20px 24px 40px;display:grid;gap:16px}
+.card{background:var(--surface);border-radius:8px;box-shadow:var(--shadow);padding:20px}
+.card h2{margin:0 0 12px;font-size:16px;font-weight:600}
+label{display:block;font-weight:600;margin-bottom:6px}
+textarea,input[type=number]{width:100%;font:inherit;color:var(--text);background:var(--surface);
+  border:1px solid var(--line);border-bottom:2px solid var(--sub);border-radius:4px;padding:10px 12px}
+textarea{min-height:140px;resize:vertical}
+textarea:focus,input:focus{outline:none;border-bottom-color:var(--brand)}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-top:14px}
+.field{width:140px}
+.hint{color:var(--sub);font-size:12px;margin-top:6px}
+.btn{min-height:44px;min-width:44px;padding:0 20px;border-radius:4px;border:1px solid var(--line);
+  background:var(--surface);color:var(--text);font:inherit;font-weight:600;cursor:pointer;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none}
+.btn:hover{background:var(--bg)}.btn:active{background:var(--line)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover{background:var(--brand-h)}.btn.primary:active{background:var(--brand-p)}
+.btn:focus-visible,.tab:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+.btn:disabled{opacity:.5;cursor:default}
+.msg{padding:10px 14px;border-radius:4px;border-left:4px solid var(--danger);background:var(--danger-bg);margin-top:12px}
+.msg.info{border-left-color:var(--brand);background:var(--brand-bg)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;margin-bottom:14px}
+.tabs{display:inline-flex;gap:4px;background:var(--bg);padding:4px;border-radius:6px}
+.tab{min-height:40px;padding:0 16px;border:0;border-radius:4px;background:transparent;color:var(--sub);
+  font:inherit;font-weight:600;cursor:pointer;touch-action:manipulation}
+.tab[aria-selected=true]{background:var(--surface);color:var(--brand);box-shadow:var(--shadow)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.item{border:1px solid var(--line);border-radius:6px;padding:12px 14px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+.modal .box{background:var(--surface);border-radius:8px;box-shadow:var(--shadow);max-width:960px;width:100%;max-height:100%;display:flex;flex-direction:column;padding:16px;gap:12px}
+.modal .pv{overflow:auto;flex:1;min-height:0;text-align:center;background:var(--bg);border-radius:4px;padding:8px}
+.modal img{max-width:100%;height:auto;-webkit-touch-callout:default;user-select:auto}
+.modal .acts{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;align-items:center}
+a.btn{display:inline-flex;align-items:center;text-decoration:none}
+.item h3{margin:0 0 8px;font-size:15px}
+.item ol{margin:0;padding:0;list-style:none}
+.item li{display:flex;gap:10px;padding:4px 0;border-top:1px solid var(--line)}
+.item li:first-child{border-top:0}
+.item li span{color:var(--sub);width:48px;flex:none}
+.pairs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.pair{display:flex;justify-content:space-between;gap:8px;border:1px solid var(--line);border-radius:6px;padding:8px 12px}
+.pair b{font-weight:600}
+.round{margin-bottom:18px}.round h3{margin:0 0 8px;font-size:15px}
+[hidden]{display:none!important}
+@media (max-width:640px){header,main{padding-left:14px;padding-right:14px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>원투원 로테이션 생성기</h1>
+  <p>이름을 입력하면 서로 겹치지 않는 원투원 그룹을 무작위로 만듭니다.</p>
+</header>
+<main>
+  <section class="card">
+    <h2>참석자 입력</h2>
+    <label for="names">이름</label>
+    <textarea id="names" placeholder="줄바꿈 또는 쉼표로 구분"></textarea>
+    <div class="row">
+      <div class="field">
+        <label for="rounds">로테이션 횟수</label>
+        <input id="rounds" type="number" min="1" max="20" value="3" inputmode="numeric">
+      </div>
+      <button class="btn primary" id="gen">그룹 생성</button>
+      <button class="btn" id="clear">초기화</button>
+    </div>
+    <div class="hint">인원이 홀수이면 '간사님'이 자동으로 추가됩니다. 로테이션 횟수는 (전체 인원 − 1)을 넘을 수 없습니다.</div>
+    <div id="msg" role="alert"></div>
+  </section>
+
+  <section class="card" id="result" hidden>
+    <div class="bar">
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" id="t-person" aria-selected="true">사람별</button>
+        <button class="tab" role="tab" id="t-round" aria-selected="false">회차별</button>
+      </div>
+      <div class="actions">
+        <button class="btn" id="again">다시 섞기</button>
+        <button class="btn primary" id="save">이미지로 저장</button>
+      </div>
+    </div>
+    <div id="byPerson" class="grid"></div>
+    <div id="byRound" hidden></div>
+  </section>
+</main>
+
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-label="이미지 미리보기">
+  <div class="box">
+    <div class="pv"><img id="pvImg" alt="원투원 로테이션 이미지"></div>
+    <div class="acts">
+      <a class="btn" id="pvOpen" target="_blank" rel="noopener">새 탭에서 열기</a>
+      <button class="btn primary" id="pvDl">다운로드</button>
+      <button class="btn" id="pvClose">닫기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const STAFF = '간사님';
+  const $ = id => document.getElementById(id);
+  let state = null; // { people, rounds: [[ [a,b], ... ], ...] }
+
+  function shuffle(a){
+    a = a.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  }
+
+  function parse(text){
+    const raw = text.split(/[\n,，、;]+/).map(s=>s.trim()).filter(Boolean);
+    const seen = new Set(), names = [], dup = [];
+    raw.forEach(n=>{
+      if(seen.has(n)) dup.push(n); else { seen.add(n); names.push(n); }
+    });
+    return { names, dup };
+  }
+
+  // 무작위 탐욕 + 재시도. 실패 시 원형 라운드로빈으로 보장.
+  function randomRounds(people, k){
+    const n = people.length;
+    for(let attempt=0; attempt<300; attempt++){
+      const met = new Map(people.map(p=>[p,new Set()]));
+      const rounds = [];
+      let ok = true;
+      for(let r=0;r<k && ok;r++){
+        const free = new Set(people), pairs = [];
+        for(const a of shuffle(people)){
+          if(!free.has(a)) continue;
+          free.delete(a);
+          const cand = shuffle([...free].filter(b=>!met.get(a).has(b)));
+          if(!cand.length){ ok = false; break; }
+          const b = cand[0];
+          free.delete(b);
+          pairs.push([a,b]);
+        }
+        if(ok){
+          pairs.forEach(([a,b])=>{ met.get(a).add(b); met.get(b).add(a); });
+          rounds.push(pairs);
+        }
+      }
+      if(ok) return rounds;
+    }
+    // 대체: 원형 방식(n-1 라운드 전체 중 k개 무작위 선택)
+    const p = shuffle(people), fixed = p[0], rest = p.slice(1), all = [];
+    for(let r=0;r<n-1;r++){
+      const arr = [fixed, ...rest.slice(r), ...rest.slice(0,r)], pairs = [];
+      for(let i=0;i<n/2;i++) pairs.push([arr[i], arr[n-1-i]]);
+      all.push(pairs);
+    }
+    return shuffle(all).slice(0,k);
+  }
+
+  function build(){
+    const { names, dup } = parse($('names').value);
+    const k = parseInt($('rounds').value,10);
+    const msg = $('msg'); msg.innerHTML = '';
+    const show = (t,info)=>{ msg.innerHTML = '<div class="msg'+(info?' info':'')+'"></div>'; msg.firstChild.textContent = t; };
+
+    if(!Number.isInteger(k) || k<1){ show('로테이션 횟수를 1 이상의 정수로 입력해 주세요.'); return false; }
+    if(names.includes(STAFF)){ show("'"+STAFF+"'은(는) 자동으로 추가되는 이름이라 직접 입력하실 수 없습니다."); return false; }
+    const people = names.slice();
+    const addedStaff = people.length % 2 === 1;
+    if(addedStaff) people.push(STAFF);
+    if(people.length < 2){ show('이름을 한 명 이상 입력해 주세요.'); return false; }
+    if(k > people.length-1){
+      show('현재 전체 인원('+people.length+'명, '+(addedStaff?'간사님 포함':'간사님 미포함')+')으로는 최대 '+(people.length-1)+'회까지만 겹치지 않게 만들 수 있습니다.');
+      return false;
+    }
+    const notes = [];
+    if(dup.length) notes.push('중복된 이름은 한 번만 반영했습니다: '+[...new Set(dup)].join(', '));
+    if(addedStaff) notes.push("인원이 홀수여서 '"+STAFF+"'을(를) 추가했습니다.");
+    if(notes.length) show(notes.join(' '), true);
+
+    state = { people, k, rounds: randomRounds(people,k), real: names };
+    render();
+    return true;
+  }
+
+  function partnersOf(p){
+    return state.rounds.map(r=>{
+      for(const [a,b] of r){ if(a===p) return b; if(b===p) return a; }
+    });
+  }
+
+  function render(){
+    $('result').hidden = false;
+    const bp = $('byPerson'); bp.innerHTML = '';
+    state.people.forEach(p=>{
+      const d = document.createElement('div');
+      d.className = 'item';
+      const h = document.createElement('h3'); h.textContent = p; d.appendChild(h);
+      const ol = document.createElement('ol');
+      partnersOf(p).forEach((q,i)=>{
+        const li = document.createElement('li');
+        const s = document.createElement('span'); s.textContent = (i+1)+'회차';
+        const n = document.createElement('b'); n.textContent = q;
+        li.append(s,n); ol.appendChild(li);
+      });
+      d.appendChild(ol); bp.appendChild(d);
+    });
+    const br = $('byRound'); br.innerHTML = '';
+    state.rounds.forEach((r,i)=>{
+      const w = document.createElement('div'); w.className='round';
+      const h = document.createElement('h3'); h.textContent = (i+1)+'회차'; w.appendChild(h);
+      const g = document.createElement('div'); g.className='pairs';
+      r.forEach(([a,b])=>{
+        const e = document.createElement('div'); e.className='pair';
+        const x = document.createElement('b'); x.textContent=a;
+        const y = document.createElement('b'); y.textContent=b;
+        e.append(x,y); g.appendChild(e);
+      });
+      w.appendChild(g); br.appendChild(w);
+    });
+  }
+
+  function makeImage(){
+    const F = '"Segoe UI","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif';
+    const S = 2, cw = 240, gap = 16, pad = 32, titleH = 64;
+    const n = state.people.length, k = state.k;
+    const ch = 52 + k*34 + 8;
+    const cols = Math.min(4, Math.ceil(Math.sqrt(n))), rows = Math.ceil(n/cols);
+    const W = pad*2 + cols*cw + (cols-1)*gap;
+    const H = pad + titleH + rows*ch + (rows-1)*gap + pad;
+    const cv = document.createElement('canvas');
+    cv.width = W*S; cv.height = H*S;
+    const c = cv.getContext('2d');
+    c.scale(S,S);
+    c.fillStyle = '#f5f5f5'; c.fillRect(0,0,W,H);
+    const fit = (t,maxW)=>{
+      if(c.measureText(t).width <= maxW) return t;
+      while(t.length>1 && c.measureText(t+'…').width > maxW) t = t.slice(0,-1);
+      return t+'…';
+    };
+    const rr = (x,y,w,h,r)=>{
+      c.beginPath(); c.moveTo(x+r,y);
+      c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r);
+      c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath();
+    };
+    c.textBaseline = 'alphabetic';
+    c.fillStyle = '#242424'; c.font = '600 24px '+F;
+    c.fillText('원투원 로테이션', pad, pad+24);
+    c.fillStyle = '#616161'; c.font = '14px '+F;
+    c.fillText('총 '+n+'명 · '+k+'회 로테이션', pad, pad+48);
+    state.people.forEach((p,i)=>{
+      const x = pad + (i%cols)*(cw+gap);
+      const y = pad + titleH + Math.floor(i/cols)*(ch+gap);
+      rr(x,y,cw,ch,8);
+      c.fillStyle = '#ffffff'; c.fill();
+      c.lineWidth = 1; c.strokeStyle = '#e0e0e0'; c.stroke();
+      c.fillStyle = '#242424'; c.font = '600 17px '+F;
+      c.fillText(fit(p,cw-32), x+16, y+30);
+      partnersOf(p).forEach((q,j)=>{
+        const ly = y + 52 + j*34;
+        c.strokeStyle = '#e0e0e0';
+        c.beginPath(); c.moveTo(x+16,ly); c.lineTo(x+cw-16,ly); c.stroke();
+        c.fillStyle = '#616161'; c.font = '13px '+F;
+        c.fillText((j+1)+'회차', x+16, ly+22);
+        c.fillStyle = '#242424'; c.font = '600 15px '+F;
+        c.fillText(fit(q,cw-32-60), x+76, ly+22);
+      });
+    });
+    return new Promise((res,rej)=>cv.toBlob(b=>b?res(b):rej(new Error('toBlob')),'image/png'));
+  }
+
+  function setTab(person){
+    $('t-person').setAttribute('aria-selected', person);
+    $('t-round').setAttribute('aria-selected', !person);
+    $('byPerson').hidden = !person;
+    $('byRound').hidden = person;
+  }
+
+  $('gen').onclick = build;
+  $('again').onclick = ()=>{ if(state) build(); };
+  $('clear').onclick = ()=>{
+    $('names').value=''; $('msg').innerHTML=''; $('result').hidden=true; state=null;
+  };
+  $('t-person').onclick = ()=>setTab(true);
+  $('t-round').onclick = ()=>setTab(false);
+  let imgBlob = null, imgUrl = null;
+  function closeModal(){
+    $('modal').hidden = true;
+    if(imgUrl){ URL.revokeObjectURL(imgUrl); imgUrl = null; }
+    imgBlob = null;
+  }
+  $('save').onclick = async ()=>{
+    if(!state) return;
+    const btn = $('save'), old = btn.textContent;
+    btn.disabled = true;
+    try{
+      imgBlob = await makeImage();
+      if(imgUrl) URL.revokeObjectURL(imgUrl);
+      imgUrl = URL.createObjectURL(imgBlob);
+      $('pvImg').src = imgUrl;
+      $('pvOpen').href = imgUrl;
+      $('modal').hidden = false;
+    }catch(e){
+      btn.textContent = '이미지 생성 실패';
+      setTimeout(()=>{ btn.textContent = old; }, 1800);
+    }
+    btn.disabled = false;
+  };
+  $('pvClose').onclick = closeModal;
+  $('modal').onclick = e=>{ if(e.target === $('modal')) closeModal(); };
+  document.addEventListener('keydown', e=>{ if(e.key === 'Escape' && !$('modal').hidden) closeModal(); });
+  $('pvDl').onclick = async ()=>{
+    if(!imgBlob) return;
+    const b = $('pvDl'), old = b.textContent;
+    let label = old;
+    try{
+      const a = document.createElement('a');
+      a.href = imgUrl; a.download = 'oto-rotation.png';
+      document.body.appendChild(a); a.click(); a.remove();
+      label = '저장 요청됨';
+    }catch(e){
+      label = (e && e.code === 'declined') ? old : '저장 실패';
+    }
+    b.textContent = label;
+    setTimeout(()=>{ b.textContent = old; }, 1800);
+  };
+})();
+</script>
+</body>
+</html>
